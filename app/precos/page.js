@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import SecondaryNavbar from '@/app/components/SecondaryNavbar';
 
 const armasGTA = [
   {
@@ -301,247 +302,57 @@ const contrabando = [
 ];
 
 export default function Precos() {
-  const [categoriaSelecionada, setCategoriaSelecionada] = useState('armas');
-  const [quantidades, setQuantidades] = useState({});
-  const [mostrarCalculadora, setMostrarCalculadora] = useState(false);
-  const [usarPrecoParceria, setUsarPrecoParceria] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
 
-  const servicos = {
-    armas: {
-      titulo: "Armas",
-      items: armasGTA,
-    },
-    municao: {
-      titulo: "Munição",
-      items: municoes,
-    },
-    lavagem: {
-      titulo: "Lavagem",
-      items: lavagem,
-    },
-    desmanche: {
-      titulo: "Desmanche",
-      items: desmanche,
-    },
-    drogas: {
-      titulo: "Drogas",
-      items: drogas,
-    },
-    contrabando: {
-      titulo: "Contrabando",
-      items: contrabando,
-    }
+  const handleSearchChange = (event) => {
+    setSearchTerm(event.target.value.toLowerCase());
   };
 
-  const categorias = [
-    { id: 'armas', nome: 'Armas' },
-    { id: 'municao', nome: 'Munição' },
-    { id: 'lavagem', nome: 'Lavagem' },
-    { id: 'desmanche', nome: 'Desmanche' },
-    { id: 'drogas', nome: 'Drogas' },
-    { id: 'contrabando', nome: 'Contrabando' }
-  ];
-
-  const handleQuantidadeChange = (itemNome, quantidade) => {
-    setQuantidades(prev => ({
-      ...prev,
-      [itemNome]: quantidade
-    }));
-  };
-
-  const calcularTotal = () => {
-    let total = 0;
-    let totalParceria = 0;
-
-    Object.entries(quantidades).forEach(([itemNome, quantidade]) => {
-      if (quantidade > 0) {
-        const item = servicos[categoriaSelecionada].items.find(i => i.nome === itemNome);
-        if (item) {
-          const preco = parseInt(item.preco.replace(/[^0-9]/g, ''));
-          const precoParceria = parseInt(item.precoParceria.replace(/[^0-9]/g, ''));
-          total += preco * quantidade;
-          totalParceria += precoParceria * quantidade;
-        }
-      }
-    });
-
-    return usarPrecoParceria ? totalParceria : total;
-  };
+  const filteredArmas = armasGTA.filter(arma =>
+    arma.nome.toLowerCase().includes(searchTerm)
+  );
 
   return (
-    <div className="min-h-screen bg-gray-900 py-12">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center">
-          <h1 className="text-4xl font-extrabold text-white sm:text-5xl">
-            Tabela de Preços
-          </h1>
-          <p className="mt-4 text-xl text-gray-300">
-            Preços atualizados para todos os serviços
-          </p>
+    <main className="min-h-screen relative bg-gradient-to-b from-gray-900 to-black text-white">
+      <div className="background" />
+      <SecondaryNavbar />
+      
+      <div className="relative z-10 max-w-7xl mx-auto pt-48 px-4 sm:px-6 lg:px-8">
+        <h1 className="text-4xl font-bold text-center mb-12">Tabela de Preços - Ilegal</h1>
+        
+        <div className="mb-8">
+          <input
+            type="text"
+            placeholder="Pesquisar arma..."
+            value={searchTerm}
+            onChange={handleSearchChange}
+            className="w-full p-4 rounded-lg bg-gray-800 text-white border border-gray-700 focus:outline-none focus:border-blue-500"
+          />
         </div>
 
-        {/* Navegação entre categorias */}
-        <div className="mt-8 flex flex-wrap justify-center gap-4">
-          {categorias.map((categoria) => (
-            <button
-              key={categoria.id}
-              onClick={() => {
-                setCategoriaSelecionada(categoria.id);
-                setQuantidades({});
-              }}
-              className={`px-6 py-3 rounded-lg font-medium transition-colors ${
-                categoriaSelecionada === categoria.id
-                  ? 'bg-indigo-600 text-white'
-                  : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
-              }`}
-            >
-              {categoria.nome}
-            </button>
-          ))}
-        </div>
-
-        {/* Botão para mostrar/esconder calculadora */}
-        <div className="mt-8 text-center">
-          <button
-            onClick={() => setMostrarCalculadora(!mostrarCalculadora)}
-            className="px-6 py-3 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition-colors"
-          >
-            {mostrarCalculadora ? 'Esconder Calculadora' : 'Mostrar Calculadora'}
-          </button>
-        </div>
-
-        {/* Botão para alternar entre preço normal e parceria */}
-        {mostrarCalculadora && (
-          <div className="mt-4 text-center">
-            <button
-              onClick={() => setUsarPrecoParceria(!usarPrecoParceria)}
-              className={`px-6 py-3 rounded-lg font-medium transition-colors ${
-                usarPrecoParceria
-                  ? 'bg-green-600 text-white'
-                  : 'bg-red-600 text-white'
-              }`}
-            >
-              {usarPrecoParceria ? 'Usando Preço Parceria' : 'Usando Preço Normal'}
-            </button>
-          </div>
-        )}
-
-        {/* Conteúdo da categoria selecionada */}
-        <div className="mt-12">
-          <div className="bg-gray-800 rounded-lg shadow-xl overflow-hidden">
-            <div className="px-6 py-4 bg-gray-700">
-              <h2 className="text-2xl font-bold text-white">{servicos[categoriaSelecionada].titulo}</h2>
-            </div>
-            <div className="p-6">
-              <div className="space-y-4">
-                {servicos[categoriaSelecionada].items.map((item) => (
-                  <div key={item.nome} className="border-b border-gray-700 pb-6 last:border-0">
-                    <div className="grid grid-cols-12 gap-4">
-                      {/* Coluna da esquerda - Nome e Preços */}
-                      <div className={`${item.nome === 'Lavagem' || item.nome === 'Desmanche' ? 'col-span-12' : 'col-span-8'}`}>
-                        <h3 className="text-lg font-medium text-white mb-3">{item.nome}</h3>
-                        <div className="grid grid-cols-2 gap-4">
-                          <div className="bg-gray-700/50 p-3 rounded-lg">
-                            <span className="text-red-400 block">{(item.nome === 'Lavagem' || item.nome === 'Desmanche') ? 'Taxa Normal:' : 'Preço Normal:'}</span>
-                            <span className="text-red-400 text-xl font-semibold">{item.preco}</span>
-                          </div>
-                          <div className="bg-gray-700/50 p-3 rounded-lg">
-                            <span className="text-green-400 block">{(item.nome === 'Lavagem' || item.nome === 'Desmanche') ? 'Taxa Parceria:' : 'Preço Parceria:'}</span>
-                            <span className="text-green-400 text-xl font-semibold">{item.precoParceria}</span>
-                          </div>
-                        </div>
-                        {(item.nome === 'Lavagem' || item.nome === 'Desmanche') && (
-                          <p className="text-gray-400 mt-3 text-sm">* Porcentagem cobrada sobre o valor {item.nome === 'Lavagem' ? 'a ser lavado' : 'do veículo'}</p>
-                        )}
-                      </div>
-
-                      {/* Coluna da direita - Calculadora */}
-                      {mostrarCalculadora && item.nome !== 'Lavagem' && item.nome !== 'Desmanche' && (
-                        <div className="col-span-4 bg-gray-700/30 p-4 rounded-lg">
-                          <div className="flex items-center gap-3 mb-3">
-                            <input
-                              type="number"
-                              min="0"
-                              value={quantidades[item.nome] || 0}
-                              onChange={(e) => handleQuantidadeChange(item.nome, parseInt(e.target.value) || 0)}
-                              className="w-24 px-3 py-2 bg-gray-700 text-white rounded border border-gray-600 focus:outline-none focus:border-indigo-500 text-center"
-                            />
-                            <span className="text-gray-400 font-medium">Quantidade</span>
-                          </div>
-                          {quantidades[item.nome] > 0 && (
-                            <div className="space-y-2 border-t border-gray-600 pt-3 mt-3">
-                              <div className="flex justify-between items-center">
-                                <span className="text-red-400">Total Normal:</span>
-                                <span className="text-red-400 font-semibold">
-                                  R$ {(parseInt(item.preco.replace(/[^0-9]/g, '')) * quantidades[item.nome]).toLocaleString()}
-                                </span>
-                              </div>
-                              <div className="flex justify-between items-center">
-                                <span className="text-green-400">Total Parceria:</span>
-                                <span className="text-green-400 font-semibold">
-                                  R$ {(parseInt(item.precoParceria.replace(/[^0-9]/g, '')) * quantidades[item.nome]).toLocaleString()}
-                                </span>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  </div>
+        <div className="glass-effect rounded-xl overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-black/50">
+                <tr>
+                  <th className="px-6 py-4 text-left text-sm font-semibold">Nome da Arma</th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold">Preço Normal</th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold">Preço Parceria</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-800">
+                {filteredArmas.map((arma, index) => (
+                  <tr key={index} className="hover:bg-gray-800/50 transition-colors">
+                    <td className="px-6 py-4">{arma.nome}</td>
+                    <td className="px-6 py-4">{arma.preco}</td>
+                    <td className="px-6 py-4 text-green-400">{arma.precoParceria}</td>
+                  </tr>
                 ))}
-              </div>
-            </div>
+              </tbody>
+            </table>
           </div>
-        </div>
-
-        {/* Resumo do pedido */}
-        {mostrarCalculadora && calcularTotal() > 0 && (
-          <div className="mt-8 bg-gray-800 rounded-lg shadow-xl overflow-hidden">
-            <div className="px-6 py-4 bg-gray-700">
-              <h2 className="text-2xl font-bold text-white">Resumo do Pedido</h2>
-            </div>
-            <div className="p-6">
-              <div className="space-y-4">
-                {Object.entries(quantidades).map(([itemNome, quantidade]) => {
-                  if (quantidade > 0) {
-                    const item = servicos[categoriaSelecionada].items.find(i => i.nome === itemNome);
-                    const precoItem = usarPrecoParceria ? item.precoParceria : item.preco;
-                    const valorTotal = usarPrecoParceria 
-                      ? parseInt(item.precoParceria.replace(/[^0-9]/g, '')) * quantidade
-                      : parseInt(item.preco.replace(/[^0-9]/g, '')) * quantidade;
-                    return (
-                      <div key={itemNome} className="flex justify-between items-center text-white">
-                        <span>{itemNome} x {quantidade}</span>
-                        <span>R$ {valorTotal.toLocaleString()}</span>
-                      </div>
-                    );
-                  }
-                  return null;
-                })}
-                <div className="border-t border-gray-700 pt-4 mt-4">
-                  <div className="flex justify-between items-center font-bold">
-                    <span className={usarPrecoParceria ? 'text-green-400' : 'text-red-400'}>
-                      Total {usarPrecoParceria ? 'com Parceria' : 'Normal'}:
-                    </span>
-                    <span className={usarPrecoParceria ? 'text-green-400' : 'text-red-400'}>
-                      R$ {calcularTotal().toLocaleString()}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        <div className="mt-12 text-center">
-          <p className="text-gray-400">
-            * Preços sujeitos a alteração sem aviso prévio
-          </p>
-          <p className="mt-2 text-gray-400">
-            ** Parcerias disponíveis para clientes frequentes
-          </p>
         </div>
       </div>
-    </div>
+    </main>
   );
 } 
